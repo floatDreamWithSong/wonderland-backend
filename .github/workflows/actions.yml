@@ -43,8 +43,50 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
+          # 如果目录不存在则创建
+          mkdir -p /root/wonderland-backend
           cd /root/wonderland-backend
-          git pull
+          
+          # 如果是首次部署，初始化git仓库
+          if [ ! -d .git ]; then
+            git init
+            git remote add origin https://github.com/floatDreamWithSong/wonderland-backend.git
+          fi
+          
+          # 保存当前的.env文件（如果存在）
+          if [ -f .env ]; then
+            cp .env .env.backup
+          fi
+          
+          # 拉取最新代码
+          git fetch --all
+          git reset --hard origin/main
+          
+          # 还原.env文件
+          if [ -f .env.backup ]; then
+            mv .env.backup .env
+          fi
+          
+          # 创建新的.env文件
+          cat > .env << EOF
+          DATABASE_URL="${DATABASE_URL}"
+          JWT_SECRET="${JWT_SECRET}"
+          CRYPTO_SECRET="${CRYPTO_SECRET}"
+          MAIL_HOST="${MAIL_HOST}"
+          MAIL_PORT="${MAIL_PORT}"
+          MAIL_USER="${MAIL_USER}"
+          MAIL_PASS="${MAIL_PASS}"
+          WX_APPID="${WX_APPID}"
+          WX_SECRET="${WX_SECRET}"
+          OSS_ACCESS_KEY_ID="${OSS_ACCESS_KEY_ID}"
+          OSS_ACCESS_KEY_SECRET="${OSS_ACCESS_KEY_SECRET}"
+          OSS_BUCKET="${OSS_BUCKET}"
+          OSS_ENDPOINT="${OSS_ENDPOINT}"
+          EOF
+          
+          # 安装依赖并构建
           npm install
           npm run build
-          pm2 restart wonderland-backend
+          
+          # 使用PM2重启服务
+          pm2 restart wonderland-backend || pm2 start dist/main.js --name wonderland-backend
