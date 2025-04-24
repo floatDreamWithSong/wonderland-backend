@@ -12,13 +12,15 @@ datasource db {
 }
 
 model User {
-  phone        String   @id
+  uid          Int   @id @default(autoincrement())
+  openId       String
+  gender       Int   @default(0) // 0: 未知, 1: 男, 2: 女
+  phone        String
   username     String
   avatar       String
   userType     Int      @default(0) // 0: 游客, 1: 私域认证用户
-  email        String?  
+  email        String?
   privateId    String?  @map("private_id")
-  password     String?
   registerTime DateTime @default(now()) @map("register_time")
 
   @@map("users")
