@@ -37,26 +37,6 @@ jobs:
 
           git pull origin main
           
-          # 检查是否存在.env文件，不存在则创建
-          if [ ! -f .env ]; then
-            touch .env
-          fi
-
-          # 写入.env文件
-          echo "DATABASE_URL=$DATABASE_URL" > .env
-          echo "JWT_SECRET=$JWT_SECRET" >> .env
-          echo "CRYPTO_SECRET=$CRYPTO_SECRET" >> .env
-          echo "MAIL_HOST=$MAIL_HOST" >> .env
-          echo "MAIL_PORT=$MAIL_PORT" >> .env
-          echo "MAIL_USER=$MAIL_USER" >> .env
-          echo "MAIL_PASS=$MAIL_PASS" >>.env
-          echo "WX_APPID=$WX_APPID" >>.env
-          echo "WX_SECRET=$WX_SECRET" >>.env
-          echo "OSS_ACCESS_KEY_ID=$OSS_ACCESS_KEY_ID" >>.env
-          echo "OSS_ACCESS_KEY_SECRET=$OSS_ACCESS_KEY_SECRET" >>.env
-          echo "OSS_BUCKET=$OSS_BUCKET" >>.env
-          echo "OSS_ENDPOINT=$OSS_ENDPOINT" >>.env
-          
           # 安装依赖并构建
           npx pnpm install
           npx pnpm build
