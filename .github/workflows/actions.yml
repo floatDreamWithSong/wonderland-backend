@@ -55,8 +55,8 @@ jobs:
           EOF
           
           # 安装依赖并构建
-          pnpm install
-          pnpm build
+          npx pnpm install
+          npx pnpm build
           
           # 使用PM2重启服务
-          pm2 restart wonderland-backend || pm2 start dist/main.js --name wonderland-backend
+          npx pm2 restart wonderland-backend || npx pm2 start dist/main.js --name wonderland-backend
