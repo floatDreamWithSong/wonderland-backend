@@ -1,39 +1,40 @@
-name: Deploy to Production
+name: Build and Deploy
 
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '22.x'
+        
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: latest
         
     - name: Install dependencies
-      run: npm install
-      
-    - name: Build
-      run: npm run build
+      run: pnpm install
 
-    - name: Copy to Server
-      uses: appleboy/scp-action@master
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        password: ${{ secrets.SSH_PASSWORD }}
-        source: "./dist"
-        target: "/root/wonderland-backend"
-        rm: true
+    - name: Generate Prisma client
+      run: pnpm dlx prisma generate
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-    - name: Deploy to Server
-      uses: appleboy/ssh-action@master
+    - name: Build application
+      run: pnpm build
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -48,14 +49,76 @@ jobs:
         OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
         OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
         OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+
+    - name: Create .env file
+      run: |
+        cat > .env << EOL
+        DATABASE_URL=${{ secrets.DATABASE_URL }}
+        JWT_SECRET=${{ secrets.JWT_SECRET }}
+        CRYPTO_SECRET=${{ secrets.CRYPTO_SECRET }}
+        MAIL_HOST=${{ secrets.MAIL_HOST }}
+        MAIL_PORT=${{ secrets.MAIL_PORT }}
+        MAIL_USER=${{ secrets.MAIL_USER }}
+        MAIL_PASS=${{ secrets.MAIL_PASS }}
+        WX_APPID=${{ secrets.WX_APPID }}
+        WX_SECRET=${{ secrets.WX_SECRET }}
+        OSS_ACCESS_KEY_ID=${{ secrets.OSS_ACCESS_KEY_ID }}
+        OSS_ACCESS_KEY_SECRET=${{ secrets.OSS_ACCESS_KEY_SECRET }}
+        OSS_BUCKET=${{ secrets.OSS_BUCKET }}
+        OSS_ENDPOINT=${{ secrets.OSS_ENDPOINT }}
+        EOL
+
+    - name: Create deployment package
+      run: |
+        mkdir -p deployment
+        cp -r dist node_modules package.json pnpm-lock.yaml .env prisma deployment/
+        cd deployment && tar -czf ../deployment.tar.gz .
+
+    - name: Deploy to server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        source: "deployment.tar.gz"
+        target: "/tmp"
+
+    - name: Execute remote commands
+      uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USERNAME }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
-          # 如果目录不存在则创建
+          # 创建目标目录（如果不存在）
           mkdir -p /root/wonderland-backend
+          
+          # 解压部署包到目标目录
+          tar -xzf /tmp/deployment.tar.gz -C /root/wonderland-backend
+          
+          # 进入项目目录
           cd /root/wonderland-backend
-
-          # 使用PM2重启服务
-          pm2 restart wonderland-backend || pm2 start dist/main.js --name wonderland-backend
+          
+          # 运行Prisma迁移（如果需要）
+          # npx prisma migrate deploy
+          
+          # 检查PM2是否已安装，如果没有则全局安装
+          if ! command -v pm2 &> /dev/null; then
+            npm install -g pm2
+          fi
+          
+          # 使用PM2重启或启动应用
+          pm2 describe "wonderland-backend" > /dev/null
+          if [ $? -eq 0 ]; then
+            # 应用已存在，重启它
+            pm2 restart "wonderland-backend"
+          else
+            # 应用不存在，启动它
+            pm2 start dist/main.js --name "wonderland-backend" --env production
+          fi
+          
+          # 保存PM2进程列表，确保服务器重启后自动启动
+          pm2 save
+          
+          # 清理临时文件
+          rm /tmp/deployment.tar.gz
