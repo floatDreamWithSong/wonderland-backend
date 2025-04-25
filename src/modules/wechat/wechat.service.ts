@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Configurations } from 'src/common/config';
 import { lastValueFrom } from 'rxjs';
 import { JwtUtils } from 'src/common/utils/jwt';
-import { WechatEncryptedDataDto, WeChatEncryptedDataSchema } from 'src/validation/wechat';
+import { WechatEncryptedDataDto, WeChatOpenidSessionKeySchema } from 'src/validation/wechat';
 import { WXBizDataCrypt } from 'src/common/utils/decrypt';
 import { RedisService } from '../redis/redis.service';
 import { EXCEPTIONS } from 'src/common/exceptions';
@@ -19,19 +19,19 @@ export class WechatService {
 
   async loginByCode(code: string): Promise<{ token: string }> {
     const endPointUrl = `https://api.weixin.qq.com/sns/jscode2session?appid=${Configurations.WX_APPID}&secret=${Configurations.WX_SECRET}&js_code=${code}&grant_type=authorization_code`;
-    this.logger.log('微信登录请求地址:', endPointUrl);
+    this.logger.log('微信登录请求地址:' + endPointUrl);
     const response = await lastValueFrom(
       this.httpService.get<{
         openid: string;
         session_key: string;
       }>(endPointUrl),
     );
-    const result = WeChatEncryptedDataSchema.safeParse(response.data);
+    const result = WeChatOpenidSessionKeySchema.safeParse(response.data);
     if (!result.success) {
-      this.logger.error('微信登录返回数据错误:', response.data);
+      this.logger.error('微信登录返回数据错误:' + JSON.stringify(response.data));
       throw EXCEPTIONS.WX_LOGIN_DATA_ERROR;
     }
-    this.logger.log('微信登录返回数据:', response.data);
+    this.logger.log(`微信登录返回数据:${JSON.stringify(response.data)}`);
 
     // 使用 RedisService 存储 session_key
     this.redisService.setSessionKeyByOpenid(response.data.openid, response.data.session_key);
@@ -40,7 +40,7 @@ export class WechatService {
       openid: response.data.openid,
       iat: Math.floor(Date.now() / 1000),
     });
-    this.logger.log('jwtToken:', jwtToken);
+    this.logger.log(`jwtToken: ${jwtToken}`);
 
     return {
       token: jwtToken,
@@ -48,15 +48,15 @@ export class WechatService {
   }
 
   async registerPhone(data: WechatEncryptedDataDto, openid: string) {
-    this.logger.log('微信注册手机号:', data);
+    this.logger.log(`微信注册手机号:${JSON.stringify(data)}`);
     const sessionKey = await this.redisService.getSessionKeyByOpenid(openid);
     if (!sessionKey) throw EXCEPTIONS.WX_SESSION_KEY_NOT_FOUND;
-    this.logger.log('sessionKey:', sessionKey);
+    this.logger.log('sessionKey: ' + sessionKey);
     const phoneData = new WXBizDataCrypt(Configurations.WX_APPID, sessionKey).decryptData<{
       phoneNumber: string;
       purePhoneNumber: string;
       countryCode: string;
     }>(data.encryptedData, data.iv);
-    this.logger.log('phoneData:', phoneData);
+    this.logger.log('phoneData: ' + JSON.stringify(phoneData));
   }
 }
