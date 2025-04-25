@@ -17,7 +17,7 @@ export class WechatService {
     private readonly redisService: RedisService, // 注入 RedisService
   ) {}
 
-  async loginByCode(code: string): Promise<{ token: string }> {
+  async loginByCode(code: string): Promise<string> {
     const endPointUrl = `https://api.weixin.qq.com/sns/jscode2session?appid=${Configurations.WX_APPID}&secret=${Configurations.WX_SECRET}&js_code=${code}&grant_type=authorization_code`;
     this.logger.log('微信登录请求地址:' + endPointUrl);
     const response = await lastValueFrom(
@@ -42,9 +42,7 @@ export class WechatService {
     });
     this.logger.log(`jwtToken: ${jwtToken}`);
 
-    return {
-      token: jwtToken,
-    };
+    return jwtToken;
   }
 
   async registerPhone(data: WechatEncryptedDataDto, openid: string) {
@@ -58,5 +56,7 @@ export class WechatService {
       countryCode: string;
     }>(data.encryptedData, data.iv);
     this.logger.log('phoneData: ' + JSON.stringify(phoneData));
+    // TODO: 注册用户
+    return null;
   }
 }
