@@ -3,9 +3,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Configurations } from 'src/common/config';
 import { lastValueFrom } from 'rxjs';
 import { JwtUtils } from 'src/common/utils/jwt';
-import { WechatRegisterByPhoneDto } from 'src/validation/wechat';
+import { WechatEncryptedDataDto, WeChatEncryptedDataSchema } from 'src/validation/wechat';
 import { WXBizDataCrypt } from 'src/common/utils/decrypt';
-import { RedisService } from '../redis/redis.service'; // 导入 RedisService
+import { RedisService } from '../redis/redis.service';
+import { EXCEPTIONS } from 'src/common/exceptions';
 
 @Injectable()
 export class WechatService {
@@ -25,6 +26,11 @@ export class WechatService {
         session_key: string;
       }>(endPointUrl),
     );
+    const result = WeChatEncryptedDataSchema.safeParse(response.data);
+    if (!result.success) {
+      this.logger.error('微信登录返回数据错误:', response.data);
+      throw EXCEPTIONS.WX_LOGIN_DATA_ERROR;
+    }
     this.logger.log('微信登录返回数据:', response.data);
 
     // 使用 RedisService 存储 session_key
@@ -41,10 +47,10 @@ export class WechatService {
     };
   }
 
-  async registerPhone(data: WechatRegisterByPhoneDto, openid: string) {
+  async registerPhone(data: WechatEncryptedDataDto, openid: string) {
     this.logger.log('微信注册手机号:', data);
     const sessionKey = await this.redisService.getSessionKeyByOpenid(openid);
-    if (!sessionKey) throw new Error('session_key not found');
+    if (!sessionKey) throw EXCEPTIONS.WX_SESSION_KEY_NOT_FOUND;
     this.logger.log('sessionKey:', sessionKey);
     const phoneData = new WXBizDataCrypt(Configurations.WX_APPID, sessionKey).decryptData<{
       phoneNumber: string;
