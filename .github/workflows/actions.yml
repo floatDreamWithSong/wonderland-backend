@@ -37,22 +37,25 @@ jobs:
 
           git pull origin main
           
-          # 创建新的.env文件
-          cat > .env << EOF
-          DATABASE_URL="${DATABASE_URL}"
-          JWT_SECRET="${JWT_SECRET}"
-          CRYPTO_SECRET="${CRYPTO_SECRET}"
-          MAIL_HOST="${MAIL_HOST}"
-          MAIL_PORT="${MAIL_PORT}"
-          MAIL_USER="${MAIL_USER}"
-          MAIL_PASS="${MAIL_PASS}"
-          WX_APPID="${WX_APPID}"
-          WX_SECRET="${WX_SECRET}"
-          OSS_ACCESS_KEY_ID="${OSS_ACCESS_KEY_ID}"
-          OSS_ACCESS_KEY_SECRET="${OSS_ACCESS_KEY_SECRET}"
-          OSS_BUCKET="${OSS_BUCKET}"
-          OSS_ENDPOINT="${OSS_ENDPOINT}"
-          EOF
+          # 检查是否存在.env文件，不存在则创建
+          if [ ! -f .env ]; then
+            touch .env
+          fi
+
+          # 写入.env文件
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          echo "JWT_SECRET=$JWT_SECRET" >> .env
+          echo "CRYPTO_SECRET=$CRYPTO_SECRET" >> .env
+          echo "MAIL_HOST=$MAIL_HOST" >> .env
+          echo "MAIL_PORT=$MAIL_PORT" >> .env
+          echo "MAIL_USER=$MAIL_USER" >> .env
+          echo "MAIL_PASS=$MAIL_PASS" >>.env
+          echo "WX_APPID=$WX_APPID" >>.env
+          echo "WX_SECRET=$WX_SECRET" >>.env
+          echo "OSS_ACCESS_KEY_ID=$OSS_ACCESS_KEY_ID" >>.env
+          echo "OSS_ACCESS_KEY_SECRET=$OSS_ACCESS_KEY_SECRET" >>.env
+          echo "OSS_BUCKET=$OSS_BUCKET" >>.env
+          echo "OSS_ENDPOINT=$OSS_ENDPOINT" >>.env
           
           # 安装依赖并构建
           npx pnpm install
