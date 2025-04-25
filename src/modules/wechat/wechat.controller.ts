@@ -12,10 +12,12 @@ export class WechatController {
   constructor(private readonly wechatService: WechatService) {}
 
   @Get('/auth/login')
-  create(@Query('code') code: string) {
+  async create(@Query('code') code: string) {
     this.logger.log(`Received code: ${code}`); // 添加这行查看实际收到的 code
-    const token = this.wechatService.loginByCode(code);
-    return MakeResponse.success(token);
+    const token = await this.wechatService.loginByCode(code);
+    return MakeResponse.success({
+      token: token,
+    });
   }
 
   @Post('/register/phone')
