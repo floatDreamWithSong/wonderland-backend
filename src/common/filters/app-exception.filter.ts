@@ -13,7 +13,7 @@ export class AppExceptionFilter implements ExceptionFilter {
   }
 }
 
-@Catch(Error)
+@Catch()
 export class ErrorFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

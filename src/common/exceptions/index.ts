@@ -25,4 +25,5 @@ export const EXCEPTIONS = {
   WX_APPID_MISMATCH: new WXBizDataException('AppID不匹配'),
   WX_SESSION_KEY_NOT_FOUND: new WXAuthException('session_key未找到'),
   WX_LOGIN_DATA_ERROR: new WXAuthException('登录返回数据错误：code无效'),
+  WX_ALREADY_REGISTERED: new WXAuthException('用户已被注册'),
 };

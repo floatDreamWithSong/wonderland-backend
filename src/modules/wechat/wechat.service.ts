@@ -70,28 +70,36 @@ export class WechatService {
     }>(data.encryptedData, data.iv);
     this.logger.log('phoneData: ' + JSON.stringify(phoneData));
 
-    // 创建新用户
-    const user = await this.prisma.user.create({
-      data: {
-        openId: openid,
-        phone: phoneData.phoneNumber,
-        username: `用户${Math.random().toString(36).slice(2, 8)}`, // 生成随机用户名
-        avatar: '', // 默认空头像
-        gender: 0, // 默认未知性别
-        userType: 0, // 默认游客
-      },
-    });
-
-    return {
-      gender: user.gender,
-      username: user.username,
-      avatar: user.avatar,
-      userType: user.userType,
-      email: user.email,
-      // 手机号需要脱敏
-      phone: phoneData.phoneNumber.slice(0, 3) + '****' + phoneData.phoneNumber.slice(-4),
-      privateId: user.privateId,
-      registerTime: user.registerTime,
-    };
+    return await this.prisma.user
+      .create({
+        data: {
+          openId: openid,
+          phone: phoneData.phoneNumber,
+          username: `用户${Math.random().toString(36).slice(2, 8)}`, // 生成随机用户名
+          avatar: '', // 默认空头像
+          gender: 0, // 默认未知性别
+          userType: 0, // 默认游客
+        },
+      })
+      .then((user) => {
+        return {
+          gender: user.gender,
+          username: user.username,
+          avatar: user.avatar,
+          userType: user.userType,
+          email: user.email,
+          phone: phoneData.phoneNumber.slice(0, 3) + '****' + phoneData.phoneNumber.slice(-4),
+          privateId: user.privateId,
+          registerTime: user.registerTime,
+        };
+      })
+      .catch((error) => {
+        if (error instanceof Error && 'code' in error && error.code === 'P2002') {
+          // 唯一性约束冲突
+          this.logger.error(`用户注册失败：openId ${openid} 或手机号 ${phoneData.phoneNumber} 已存在`);
+          throw EXCEPTIONS.WX_ALREADY_REGISTERED;
+        }
+        throw error;
+      });
   }
 }
