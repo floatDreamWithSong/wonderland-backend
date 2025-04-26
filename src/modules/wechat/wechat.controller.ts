@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Logger, HttpStatus, HttpCode } from '@nestjs/common';
 import { WechatService } from './wechat.service';
 import { WechatEncryptedDataDto, WeChatEncryptedDataSchema } from 'src/validators/wechat';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
@@ -20,6 +20,7 @@ export class WechatController {
     });
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('/register/phone')
   async registerByPhone(
     @Body(new ZodValidationPipe(WeChatEncryptedDataSchema)) body: WechatEncryptedDataDto,
