@@ -14,20 +14,6 @@ jobs:
       
     - name: Deploy to Server
       uses: appleboy/ssh-action@master
-      env:
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        CRYPTO_SECRET: ${{ secrets.CRYPTO_SECRET }}
-        MAIL_HOST: ${{ secrets.MAIL_HOST }}
-        MAIL_PORT: ${{ secrets.MAIL_PORT }}
-        MAIL_USER: ${{ secrets.MAIL_USER }}
-        MAIL_PASS: ${{ secrets.MAIL_PASS }}
-        WX_APPID: ${{ secrets.WX_APPID }}
-        WX_SECRET: ${{ secrets.WX_SECRET }}
-        OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
-        OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-        OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
-        OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USERNAME }}
@@ -39,7 +25,9 @@ jobs:
           
           # 安装依赖并构建
           npx pnpm install
+          NODE_ENV=production
+          npx prisma generate
+          npx prisma migrate deploy
           npx pnpm build
-          
           # 使用PM2重启服务
           npx pm2 restart wonderland-backend || npx pm2 start dist/main.js --name wonderland-backend
