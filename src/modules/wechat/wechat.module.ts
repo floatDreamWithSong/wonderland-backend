@@ -3,7 +3,7 @@ import { WechatService } from './wechat.service';
 import { WechatController } from './wechat.controller';
 import { HttpModule } from '@nestjs/axios';
 import { Configurations } from 'src/common/config';
-import { RedisModule } from '../redis/redis.module';
+import { RedisCacheModule } from '../redis/redis.module';
 
 @Module({
   imports: [
@@ -13,7 +13,7 @@ import { RedisModule } from '../redis/redis.module';
         maxRedirects: Configurations.HTTP_MAX_REDIRECTS,
       }),
     }),
-    RedisModule,
+    RedisCacheModule,
     Configurations,
   ],
   controllers: [WechatController],

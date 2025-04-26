@@ -5,7 +5,7 @@ import { Module, OnModuleInit } from '@nestjs/common';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // 配置模块全局可用
-      envFilePath: '.env', // 指定 .env 文件路径
+      envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'], // 按顺序加载环境文件
     }),
   ],
 })
@@ -31,11 +31,16 @@ export class Configurations implements OnModuleInit {
   static TEST_ENV_VAR: string;
   static CRYPTO_SECRET: string;
 
+  // 添加 Redis 配置
+  static REDIS_HOST: string;
+  static REDIS_PORT: number;
+  static REDIS_PASSWORD: string;
+  static REDIS_DB: number;
+
   constructor(private readonly configService: ConfigService) {}
 
   onModuleInit() {
     Configurations.configService = this.configService;
-
     // 使用getOrThrow确保必须读取到环境变量
     Configurations.DATABASE_URL = this.configService.getOrThrow<string>('DATABASE_URL');
     Configurations.JWT_SECRET = this.configService.getOrThrow<string>('JWT_SECRET');
@@ -52,6 +57,11 @@ export class Configurations implements OnModuleInit {
     Configurations.OSS_ENDPOINT = this.configService.getOrThrow<string>('OSS_ENDPOINT');
     Configurations.CRYPTO_SECRET = this.configService.getOrThrow<string>('CRYPTO_SECRET');
 
+    // 添加 Redis 配置的初始化
+    Configurations.REDIS_HOST = this.configService.getOrThrow<string>('REDIS_HOST');
+    Configurations.REDIS_PORT = this.configService.getOrThrow<number>('REDIS_PORT');
+    Configurations.REDIS_PASSWORD = this.configService.getOrThrow<string>('REDIS_PASSWORD');
+    Configurations.REDIS_DB = this.configService.getOrThrow<number>('REDIS_DB');
     Configurations.TEST_ENV_VAR = this.configService.getOrThrow<string>('TEST_ENV_VAR');
     console.log('Configurations.TEST_ENV_VAR', Configurations.TEST_ENV_VAR);
     // 对于HTTP_TIMEOUT和HTTP_MAX_REDIRECTS这类有默认值的配置可以保持原样

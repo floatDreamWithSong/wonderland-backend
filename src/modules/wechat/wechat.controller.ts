@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Query, Logger } from '@nestjs/common';
 import { WechatService } from './wechat.service';
-import { WechatEncryptedDataDto, WeChatEncryptedDataSchema } from 'src/validation/wechat';
+import { WechatEncryptedDataDto, WeChatEncryptedDataSchema } from 'src/validators/wechat';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
 import { User } from 'src/common/decorators/user.decorator';
 import { JwtPayload } from 'src/types/jwt';
