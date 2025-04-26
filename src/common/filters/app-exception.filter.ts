@@ -9,7 +9,7 @@ export class AppExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    response.status(200).json(MakeResponse.error(exception.code, exception.message));
+    response.status(400).json(MakeResponse.error(exception.code, exception.message));
   }
 }
 
@@ -19,6 +19,6 @@ export class ErrorFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    response.status(200).json(MakeResponse.error(1000, exception.message));
+    response.status(500).json(MakeResponse.error(1000, exception.message));
   }
 }
