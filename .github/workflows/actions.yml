@@ -21,7 +21,7 @@ jobs:
         script: |
           cd /root/wonderland-backend
 
-          if ! git pull ; then
+          if ! git pull https://github.com/floatDreamWithSong/wonderland-backend.git main ; then
             echo "Git pull failed"
             exit 1
           fi
