@@ -4,18 +4,16 @@ import { JwtPayload } from 'src/types/jwt';
 
 describe('JwtUtils', () => {
   let jwtUtils: JwtUtils;
-  const testPayload: JwtPayload = { openid: '123', iat: 0 };
+  let testPayload: JwtPayload;
 
   beforeAll(() => {
     // 确保配置中有JWT密钥和过期时间
-    if (!Configurations.JWT_SECRET) {
-      Configurations.JWT_SECRET = 'test-secret-key-32-characters-long';
-    }
-    if (!Configurations.JWT_EXPIRATION_TIME) {
-      Configurations.JWT_EXPIRATION_TIME = '3600s';
-    }
-
+    Configurations.JWT_SECRET = 'test-secret-key-32-characters-long';
+    Configurations.JWT_EXPIRATION_TIME = '1s';
+    // 使用固定的测试密钥，确保加解密一致性
+    Configurations.CRYPTO_SECRET = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
     jwtUtils = new JwtUtils();
+    testPayload = { openid: 'test-openid', iat: Math.floor(Date.now() / 1000) };
   });
 
   it('should sign payload and return token', () => {
@@ -25,14 +23,13 @@ describe('JwtUtils', () => {
     expect(token.split('.').length).toBe(3); // JWT由三部分组成
   });
 
-  it('should verify valid token', async () => {
+  it('should verify valid token', () => {
     const token = jwtUtils.sign(testPayload);
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // 等待1秒以确保token未过期
     const decoded = jwtUtils.verify(token);
 
     expect(decoded).toBeDefined();
-    expect(decoded.openid).toBe(testPayload.openid);
-    expect(decoded.iat).toBeDefined(); // 签发时间应该存在
+    expect(decoded.openid).toBe(testPayload.openid); // 使用严格相等
+    expect(decoded.iat).toBeDefined();
   });
 
   it('should throw error for invalid token', () => {
@@ -41,19 +38,9 @@ describe('JwtUtils', () => {
   });
 
   it('should throw error for expired token', async () => {
-    // 创建过期时间为1秒前的token
-    Configurations.JWT_EXPIRATION_TIME = '1s'; // 设置过期时间为1秒
     const expiredPayload = { ...testPayload };
     const expiredToken = jwtUtils.sign(expiredPayload);
     await new Promise((resolve) => setTimeout(resolve, 1100)); // 等待1.1秒以确保token过期
-    // 恢复过期时间配置
-    Configurations.JWT_EXPIRATION_TIME = '7200s'; // 恢复为默认值
-    console.log('Expired token:', expiredToken);
-    try {
-      jwtUtils.verify(expiredToken);
-    } catch (err) {
-      console.log('Token expired:', err);
-    }
     expect(() => jwtUtils.verify(expiredToken)).toThrow();
   });
   it('should throw error for token with wrong secret', () => {

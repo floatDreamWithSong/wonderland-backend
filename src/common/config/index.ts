@@ -24,10 +24,11 @@ export class Configurations implements OnModuleInit {
   static MAIL_PASS: string;
   static WX_APPID: string;
   static WX_SECRET: string;
-  static OSS_ACCESS_KEY_ID: string;
-  static OSS_ACCESS_KEY_SECRET: string;
-  static OSS_BUCKET: string;
-  static OSS_ENDPOINT: string;
+  static COS_SECRET_ID: string;
+  static COS_SECRET_KEY: string;
+  static COS_BUCKET: string;
+  static COS_ENDPOINT: string;
+  static COS_REGION: string = 'ap-shanghai';
   static TEST_ENV_VAR: string;
   static CRYPTO_SECRET: string;
 
@@ -51,10 +52,10 @@ export class Configurations implements OnModuleInit {
     Configurations.MAIL_PASS = this.configService.getOrThrow<string>('MAIL_PASS');
     Configurations.WX_APPID = this.configService.getOrThrow<string>('WX_APPID');
     Configurations.WX_SECRET = this.configService.getOrThrow<string>('WX_SECRET');
-    Configurations.OSS_ACCESS_KEY_ID = this.configService.getOrThrow<string>('OSS_ACCESS_KEY_ID');
-    Configurations.OSS_ACCESS_KEY_SECRET = this.configService.getOrThrow<string>('OSS_ACCESS_KEY_SECRET');
-    Configurations.OSS_BUCKET = this.configService.getOrThrow<string>('OSS_BUCKET');
-    Configurations.OSS_ENDPOINT = this.configService.getOrThrow<string>('OSS_ENDPOINT');
+    Configurations.COS_SECRET_ID = this.configService.getOrThrow<string>('COS_SECRET_ID');
+    Configurations.COS_SECRET_KEY = this.configService.getOrThrow<string>('COS_SECRET_KEY');
+    Configurations.COS_BUCKET = this.configService.getOrThrow<string>('COS_BUCKET');
+    Configurations.COS_ENDPOINT = this.configService.getOrThrow<string>('COS_ENDPOINT');
     Configurations.CRYPTO_SECRET = this.configService.getOrThrow<string>('CRYPTO_SECRET');
 
     // 添加 Redis 配置的初始化

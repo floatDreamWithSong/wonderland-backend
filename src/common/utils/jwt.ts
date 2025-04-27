@@ -15,11 +15,16 @@ export class JwtUtils {
   }
 
   sign(payload: JwtPayload): string {
-    payload.openid = CryptoUtils.encrypt(payload.openid);
-    return this.jwtService.sign(payload, {
-      secret: Configurations.JWT_SECRET,
-      expiresIn: Configurations.JWT_EXPIRATION_TIME,
-    });
+    return this.jwtService.sign(
+      {
+        ...payload,
+        openid: CryptoUtils.encrypt(payload.openid),
+      },
+      {
+        secret: Configurations.JWT_SECRET,
+        expiresIn: Configurations.JWT_EXPIRATION_TIME,
+      },
+    );
   }
 
   verify(token: string) {
