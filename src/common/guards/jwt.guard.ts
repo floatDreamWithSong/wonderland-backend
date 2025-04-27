@@ -1,15 +1,17 @@
 import { Injectable, CanActivate, ExecutionContext, Logger } from '@nestjs/common';
-import { JwtUtils } from '../utils/jwt';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { JwtUtils } from '../utils/jwt/jwt.service';
 
 @Injectable()
 export class JwtGuard implements CanActivate {
   private readonly logger = new Logger(JwtGuard.name);
-  private readonly jwtUtils = new JwtUtils();
 
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly jwtUtils: JwtUtils,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     // 检查是否标记为公开接口

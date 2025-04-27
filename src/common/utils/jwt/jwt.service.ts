@@ -1,17 +1,16 @@
-import { JwtService } from '@nestjs/jwt';
-import { Configurations } from '../config';
-import { JwtPayload } from 'src/types/jwt';
 import { Injectable } from '@nestjs/common';
-import { CryptoUtils } from './utils';
+import { Configurations } from 'src/common/config';
+import { JwtPayload } from 'src/types/jwt';
+import { JwtService } from '@nestjs/jwt';
+import { CryptoUtils } from '../utils';
 
 @Injectable()
 export class JwtUtils {
-  private readonly jwtService: JwtService;
-  constructor() {
-    this.jwtService = new JwtService({
-      secret: Configurations.JWT_SECRET,
-      signOptions: { expiresIn: Configurations.JWT_EXPIRATION_TIME },
-    });
+  constructor(private readonly jwtService: JwtService) {
+    // this.jwtUtils = new JwtService({
+    //   secret: Configurations.JWT_SECRET,
+    //   signOptions: { expiresIn: Configurations.JWT_EXPIRATION_TIME },
+    // });
   }
 
   sign(payload: JwtPayload): string {

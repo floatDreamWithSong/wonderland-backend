@@ -65,6 +65,7 @@ export class Configurations implements OnModuleInit {
     Configurations.REDIS_DB = this.configService.getOrThrow<number>('REDIS_DB');
     Configurations.TEST_ENV_VAR = this.configService.getOrThrow<string>('TEST_ENV_VAR');
     console.log('Configurations.TEST_ENV_VAR', Configurations.TEST_ENV_VAR);
+    console.log('Configurations.BUCKET', Configurations.COS_BUCKET);
     // 对于HTTP_TIMEOUT和HTTP_MAX_REDIRECTS这类有默认值的配置可以保持原样
   }
 

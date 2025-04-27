@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { AppExceptionFilter, ErrorFilter } from './common/filters/app-exception.filter';
-import { LoggerService } from './modules/logger/logger.service';
+import { LoggerService } from './common/utils/logger/logger.service';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
 async function bootstrap() {

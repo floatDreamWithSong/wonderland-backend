@@ -9,14 +9,15 @@ export class CosService implements OnModuleInit {
   private baseParam: COS.PutObjectAclParams;
   onModuleInit() {
     this.cos = new COS({
-      SecretId: process.env.COS_SECRET_ID,
-      SecretKey: process.env.COS_SECRET_KEY,
+      SecretId: Configurations.COS_SECRET_ID,
+      SecretKey: Configurations.COS_SECRET_KEY,
     });
     this.baseParam = {
       Bucket: Configurations.COS_BUCKET,
       Region: Configurations.COS_REGION,
       Key: '', // 文件在桶中的存储path，以及存储名称
     };
+    this.logger.log(this.baseParam);
   }
   async uploadFile(file: Express.Multer.File) {
     const { originalname, buffer } = file;
@@ -46,6 +47,7 @@ export class CosService implements OnModuleInit {
       Key,
       Body: buffer,
     };
+    this.logger.log(params);
     const res = await this.cos.putObject(params);
     return res.Location;
   }

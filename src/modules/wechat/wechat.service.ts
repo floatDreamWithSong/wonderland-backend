@@ -2,22 +2,22 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { Configurations } from 'src/common/config';
 import { lastValueFrom } from 'rxjs';
-import { JwtUtils } from 'src/common/utils/jwt';
 import { WechatEncryptedDataDto, WeChatOpenidSessionKeySchema } from 'src/validators/wechat';
 import { WXBizDataCrypt } from 'src/common/utils/decrypt';
 import { EXCEPTIONS } from 'src/common/exceptions';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../common/utils/prisma/prisma.service';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
+import { JwtUtils } from 'src/common/utils/jwt/jwt.service';
 
 @Injectable()
 export class WechatService {
   private readonly logger = new Logger(WechatService.name);
-  private readonly jwtUtils = new JwtUtils();
 
   constructor(
     private readonly httpService: HttpService,
     private readonly prisma: PrismaService,
+    private readonly jwtUtils: JwtUtils,
     @InjectRedis() private readonly redisService: Redis,
   ) {}
 
@@ -45,16 +45,30 @@ export class WechatService {
       throw EXCEPTIONS.WX_LOGIN_DATA_ERROR;
     }
     this.logger.log(`微信登录返回数据:${JSON.stringify(response.data)}`);
-
+    // 如果是老用户
+    const user = await this.prisma.user.findUnique({
+      where: {
+        openId: response.data.openid,
+      },
+    });
+    if (user) {
+      const jwtToken = this.jwtUtils.sign({
+        openid: user.openId,
+        userType: user.userType,
+        iat: Math.floor(Date.now() / 1000),
+      });
+      this.logger.log(`已存在的用户进行登录, jwtToken: ${jwtToken}`);
+      return jwtToken;
+    }
     // 使用 RedisService 存储 session_key
     await this.setSessionKeyByOpenid(response.data.openid, response.data.session_key);
 
     const jwtToken = this.jwtUtils.sign({
       openid: response.data.openid,
+      userType: 0,
       iat: Math.floor(Date.now() / 1000),
     });
-    this.logger.log(`jwtToken: ${jwtToken}`);
-
+    this.logger.log(`新用户正在等待绑定, jwtToken: ${jwtToken}`);
     return jwtToken;
   }
 

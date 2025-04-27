@@ -1,4 +1,4 @@
-import { Controller, HttpCode, HttpStatus, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
 import { User } from 'src/common/decorators/user.decorator';
@@ -18,5 +18,18 @@ export class UserController {
       throw new Error('不支持的文件类型，仅支持 JPG、PNG、GIF WEBP 格式');
     }
     return this.userService.changeAvatar(image, user);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('sendVerifyCode')
+  async sendVerifyCode(@Body('email') email: string, @User() user: JwtPayload) {
+    await this.userService.sendVerifyCode(email, user.openid);
+    return null;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('verifyCode')
+  async verifyCode(@Body('email') email: string, @Body('code') code: string, @User() user: JwtPayload) {
+    return this.userService.verifyCode(email, code, user.openid);
   }
 }

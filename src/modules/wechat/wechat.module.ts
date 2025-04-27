@@ -3,7 +3,8 @@ import { WechatService } from './wechat.service';
 import { WechatController } from './wechat.controller';
 import { HttpModule } from '@nestjs/axios';
 import { Configurations } from 'src/common/config';
-import { RedisCacheModule } from '../redis/redis.module';
+import { RedisCacheModule } from '../../common/utils/redis/redis.module';
+import { JwtUtilsModule } from 'src/common/utils/jwt/jwt.module';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { RedisCacheModule } from '../redis/redis.module';
       }),
     }),
     RedisCacheModule,
-    Configurations,
+    JwtUtilsModule,
   ],
   controllers: [WechatController],
   providers: [WechatService],
