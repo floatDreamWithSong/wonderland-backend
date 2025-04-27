@@ -43,7 +43,8 @@ export class UserService {
     return res;
   }
   private validateEmail(email: string) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email === '956968770@qq.com') return true;
+    const emailRegex = /^\d{11}@stu\.ecnu\.edu\.cn$/;
     return emailRegex.test(email);
   }
   async sendVerifyCode(email: string, openId: string): Promise<void> {

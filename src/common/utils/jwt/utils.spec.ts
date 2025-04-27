@@ -1,5 +1,5 @@
 import { CryptoUtils } from './utils';
-import { Configurations } from '../config';
+import { Configurations } from '../../config';
 
 describe.skip('CryptoUtils', () => {
   const testText = 'Hello, WonderLand!';

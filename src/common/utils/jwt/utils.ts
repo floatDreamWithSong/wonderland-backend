@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { Configurations } from '../config';
+import { Configurations } from '../../config';
 
 export class CryptoUtils {
   private static readonly algorithm = 'aes-256-cbc';

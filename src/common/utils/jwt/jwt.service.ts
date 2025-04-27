@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Configurations } from 'src/common/config';
 import { JwtPayload } from 'src/types/jwt';
 import { JwtService } from '@nestjs/jwt';
-import { CryptoUtils } from '../utils';
+import { CryptoUtils } from './utils';
 
 @Injectable()
 export class JwtUtils {
