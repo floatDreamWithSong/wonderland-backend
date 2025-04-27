@@ -21,7 +21,10 @@ jobs:
         script: |
           cd /root/wonderland-backend
 
-          git pull origin main
+          if ! git pull ; then
+            echo "Git pull failed"
+            exit 1
+          fi
           
           # 安装依赖并构建
           npx pnpm install
