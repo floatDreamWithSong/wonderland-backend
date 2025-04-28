@@ -1,4 +1,12 @@
-import { Catch, ArgumentsHost, ExceptionFilter, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Catch,
+  ArgumentsHost,
+  ExceptionFilter,
+  Logger,
+  BadRequestException,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { AppException } from '../exceptions';
 import { Response } from 'express';
 import { MakeResponse } from '../utils/response';
@@ -28,6 +36,34 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     response.status(400).json(MakeResponse.error(1004, exception.message));
+  }
+}
+
+@Catch(UnauthorizedException)
+export class UnauthorizedExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(UnauthorizedExceptionFilter.name);
+
+  catch(exception: UnauthorizedException, host: ArgumentsHost) {
+    // 捕获UnauthorizedException，以401的错误码为客户端错误，1003为错误码
+    this.logger.error(exception.stack);
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+
+    response.status(401).json(MakeResponse.error(1001, exception.message));
+  }
+}
+
+@Catch(ForbiddenException)
+export class ForbiddenExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(ForbiddenExceptionFilter.name);
+
+  catch(exception: ForbiddenException, host: ArgumentsHost) {
+    // 捕获ForbiddenException，以403的错误码为客户端错误，1002为错误码
+    this.logger.error(exception.stack);
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+
+    response.status(403).json(MakeResponse.error(1003, exception.message));
   }
 }
 

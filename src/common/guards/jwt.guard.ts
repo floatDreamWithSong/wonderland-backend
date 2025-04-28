@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, Logger } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -35,7 +35,7 @@ export class JwtGuard implements CanActivate {
       return true;
     } catch (err) {
       this.logger.error('JWT verification failed:', err);
-      return false;
+      throw new UnauthorizedException('Invalid token');
     }
   }
 }
