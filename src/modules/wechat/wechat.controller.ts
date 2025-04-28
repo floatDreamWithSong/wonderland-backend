@@ -21,7 +21,7 @@ export class WechatController {
 
   @HttpCode(HttpStatus.OK)
   @Post('/register/phone')
-  @UserType((user) => user.userType === 0)
+  @UserType('onlyUnAuthedUser')
   async registerByPhone(
     @Body(new ZodValidationPipe(WeChatEncryptedDataSchema)) body: WechatEncryptedDataDto,
     @User() user: JwtPayload,
