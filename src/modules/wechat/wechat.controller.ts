@@ -5,6 +5,7 @@ import { WechatEncryptedDataDto, WeChatEncryptedDataSchema } from 'src/validator
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
 import { User } from 'src/common/decorators/user.decorator';
 import { JwtPayload } from 'src/types/jwt';
+import { UserType } from 'src/common/decorators/user-type.decorator';
 
 @Controller('/wechat')
 export class WechatController {
@@ -15,14 +16,12 @@ export class WechatController {
   @Get('/auth/login')
   async create(@Query('code') code: string) {
     this.logger.log(`Received code: ${code}`); // 添加这行查看实际收到的 code
-    const token = await this.wechatService.loginByCode(code);
-    return {
-      token: token,
-    };
+    return await this.wechatService.loginByCode(code);
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('/register/phone')
+  @UserType((user) => user.userType === 0)
   async registerByPhone(
     @Body(new ZodValidationPipe(WeChatEncryptedDataSchema)) body: WechatEncryptedDataDto,
     @User() user: JwtPayload,

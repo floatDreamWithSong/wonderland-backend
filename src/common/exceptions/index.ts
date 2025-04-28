@@ -65,4 +65,5 @@ export const EXCEPTIONS = {
   VERIFY_CODE_ERROR: new PrivateAuthException('验证码错误'),
   EMAIL_ALREADY_BOUND: new PrivateAuthException('邮箱已被绑定'),
   EMAIL_AUTH_ERROR: new PrivateAuthException('不是被认证的邮箱类型'),
+  VERIFY_CODE_SEND_TOO_FREQUENTLY: new PrivateAuthException('验证码发送太频繁'),
 };

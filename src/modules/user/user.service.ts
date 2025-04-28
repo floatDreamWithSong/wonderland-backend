@@ -61,9 +61,12 @@ export class UserService {
     if (user?.email) {
       throw EXCEPTIONS.EMAIL_ALREADY_BOUND;
     }
-
+    let code = await this.redisService.get(email);
+    if (code) {
+      throw EXCEPTIONS.VERIFY_CODE_SEND_TOO_FREQUENTLY;
+    }
     // 发送验证码
-    const code = Math.floor(Math.random() * 1000000)
+    code = Math.floor(Math.random() * 1000000)
       .toString()
       .padStart(6, '0');
     await this.emailService.sendVerificationCode(email, code);

@@ -3,6 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
 import { User } from 'src/common/decorators/user.decorator';
 import { JwtPayload } from 'src/types/jwt';
+import { UserType } from 'src/common/decorators/user-type.decorator';
 
 @Controller('user')
 export class UserController {
@@ -22,6 +23,7 @@ export class UserController {
 
   @HttpCode(HttpStatus.OK)
   @Post('sendVerifyCode')
+  @UserType((user) => user.userType === 0)
   async sendVerifyCode(@Body('email') email: string, @User() user: JwtPayload) {
     await this.userService.sendVerifyCode(email, user.openid);
     return null;
@@ -29,6 +31,7 @@ export class UserController {
 
   @HttpCode(HttpStatus.OK)
   @Post('verifyCode')
+  @UserType((user) => user.userType === 0)
   async verifyCode(@Body('email') email: string, @Body('code') code: string, @User() user: JwtPayload) {
     return this.userService.verifyCode(email, code, user.openid);
   }

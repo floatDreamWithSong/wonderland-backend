@@ -30,7 +30,7 @@ export class WechatService {
     return await this.redisService.get(`wx:session:${openid}`);
   }
 
-  async loginByCode(code: string): Promise<string> {
+  async loginByCode(code: string) {
     const endPointUrl = `https://api.weixin.qq.com/sns/jscode2session?appid=${Configurations.WX_APPID}&secret=${Configurations.WX_SECRET}&js_code=${code}&grant_type=authorization_code`;
     this.logger.log('微信登录请求地址:' + endPointUrl);
     const response = await lastValueFrom(
@@ -58,7 +58,20 @@ export class WechatService {
         iat: Math.floor(Date.now() / 1000),
       });
       this.logger.log(`已存在的用户进行登录, jwtToken: ${jwtToken}`);
-      return jwtToken;
+      return {
+        token: jwtToken,
+        registered: true,
+        info: {
+          gender: user.gender,
+          username: user.username,
+          avatar: user.avatar,
+          userType: user.userType,
+          email: user.email,
+          phone: user.phone.slice(0, 3) + '****' + user.phone.slice(-4),
+          privateId: user.privateId,
+          registerTime: user.registerTime,
+        },
+      };
     }
     // 使用 RedisService 存储 session_key
     await this.setSessionKeyByOpenid(response.data.openid, response.data.session_key);
@@ -69,7 +82,11 @@ export class WechatService {
       iat: Math.floor(Date.now() / 1000),
     });
     this.logger.log(`新用户正在等待绑定, jwtToken: ${jwtToken}`);
-    return jwtToken;
+    return {
+      token: jwtToken,
+      registered: false,
+      info: null,
+    };
   }
 
   async registerPhone(data: WechatEncryptedDataDto, openid: string) {
