@@ -6,9 +6,11 @@ import { WechatModule } from './modules/wechat/wechat.module';
 import { UserModule } from './modules/user/user.module';
 import { JwtUtilsModule } from './common/utils/jwt/jwt.module';
 import { Configurations } from './common/config';
+import { PrismaModule } from './common/utils/prisma/prisma.module';
+import { RedisCacheModule } from './common/utils/redis/redis.module';
 
 @Module({
-  imports: [WechatModule, UserModule, JwtUtilsModule, Configurations],
+  imports: [WechatModule, UserModule, JwtUtilsModule, Configurations, PrismaModule, RedisCacheModule],
   providers: [
     {
       provide: APP_GUARD,
