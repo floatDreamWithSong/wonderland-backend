@@ -50,7 +50,7 @@ export class UserService {
   async sendVerifyCode(email: string, openId: string): Promise<void> {
     // 检查邮箱格式
     if (!this.validateEmail(email)) {
-      throw EXCEPTIONS.EMAIL_FORMAT_ERROR;
+      throw EXCEPTIONS.EMAIL_AUTH_ERROR;
     }
     // 检查用户是否已经绑定邮箱
     const user = await this.prismaService.user.findUnique({
