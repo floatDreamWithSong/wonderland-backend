@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output = "../prisma-generated"
+  output   = "../prisma-generated"
 }
 
 datasource db {
@@ -12,16 +12,223 @@ datasource db {
 }
 
 model User {
-  uid          Int   @id @default(autoincrement())
-  openId       String @unique
-  gender       Int   @default(0) // 0: 未知, 1: 男, 2: 女
-  phone        String @unique
-  username     String
-  avatar       String
-  userType     Int      @default(0) // 0: 游客, 1: 私域认证用户
+  // 基础信息
+  uid          Int           @id @default(autoincrement())
+  openId       String        @unique
+  gender       Int           @default(0) // 0: 未知, 1: 男, 2: 女
+  phone        String        @unique
+  username     String        @unique
+  avatar       String?
+  userType     Int           @default(0) // 0: 游客, 1: 私域认证用户
   email        String?
-  privateId    String?  @map("private_id")
-  registerTime DateTime @default(now()) @map("register_time")
+  privateId    String?       @map("private_id")
+  registerTime DateTime      @default(now()) @map("register_time")
+  // 文章
+  passages     Passage[]
+  // 评论
+  comments     Comment[]
+  // 点赞
+  likes        PassageLike[]
+  // 评论点赞
+  commentLikes CommentLike[]
+  // 收藏
+  favorites    Favorite[]
+  // 关注
+  following    UserFollow[]  @relation("UserFollows")
+  followers    UserFollow[]  @relation("UserFollowers")
+  // 订单
+  orders       Order[]
+  // 用户标签
+  UserToUserTag UserToUserTag[]
+}
 
-  @@map("users")
+model Passage {
+  // 文章ID
+  pid          Int            @id @default(autoincrement())
+  // 文章标题
+  title        String
+  // 文章内容
+  content      String         @db.Text
+  // 作者
+  authorId     Int
+  author       User           @relation(fields: [authorId], references: [uid])
+  // 最后编辑时间
+  lastEditTime DateTime       @default(now()) @map("last_edit_time")
+  // 发布时间
+  publishTime  DateTime       @default(now()) @map("publish_time")
+  // 阅读量
+  views        Int            @default(0)
+  // 图片
+  images       PassageImage[]
+
+  // 标签范围
+  pushUserTags   UserTag[]
+  // 标签范围推送情况
+  pushType       Int            @default(0) // 0: 不开启定向推送（即公开） 1: 标签内允许 2: 标签内禁止
+  // 推送流量上限
+  pushLimit      Int            @default(0) // 0: 不限制, 其它正整数表示对应数字的限制
+
+  // 评论
+  comments       Comment[]
+  // 点赞
+  passageLikes   PassageLike[]
+  // 收藏
+  favorites      Favorite[]
+  // 标签
+  PassageToTheme PassageToTheme[]
+  // 热度
+  hotScore       Int            @default(0) // 热度评分
+
+  // 日后可扩展的业务属性（视频、内容审核）
+  // videoUrl      String?        @map("video_url")
+  // reviewTime    DateTime?
+  // status        Int            @default(0)
+  // reason        String?
+  // coverImageUrl String
+  // isDeleted     Boolean        @default(false) @map("is_deleted") // 逻辑删除占位
+
+  @@index([publishTime]) // 添加索引优化排序查询
+  @@index([lastEditTime])
+  @@map("passages")
+}
+
+// 文章一对多图片
+model PassageImage {
+  imageId   Int     @id @default(autoincrement()) @map("id")
+  passageId Int     @map("pid")
+  passage   Passage @relation(fields: [passageId], references: [pid])
+  url       String
+
+  @@map("passage_images")
+}
+
+// 订单，依附于特定的主题，例如"求代取"主题，就包含了一个代取订单
+model Order {
+  // 订单号
+  oid         Int       @id @default(autoincrement())
+  // 订单创建者
+  userId      Int
+  user        User      @relation(fields: [userId], references: [uid])
+  // 订单创建时间
+  createdAt   DateTime  @default(now()) @map("created_at")
+  // 订单完成时间
+  completedAt DateTime? @map("completed_at")
+  // 订单报酬
+  reward      Int
+  // 订单状态
+  status      Int       @default(0) // 0: 待接单, 1: 已接单, 2: 已完成未支付, 3: 已完成已支付
+  // 订单所属的一个主题
+  themeId     Int
+  theme       Theme     @relation(fields: [themeId], references: [themeId])
+
+  @@map("orders")
+}
+
+// 主题，例如"求代取"主题，是区分文章系统中不同业务场景的标识
+model Theme {
+  themeId        Int              @id @default(autoincrement()) @map("tid")
+  name           String           @unique
+  PassageToTheme PassageToTheme[]
+  // 一个主题有0个或多个订单
+  Order          Order[]
+
+  @@map("themes")
+}
+
+// 文章和主题，多对多
+model PassageToTheme {
+  passageId Int
+  themeId   Int
+  passage   Passage @relation(fields: [passageId], references: [pid])
+  theme     Theme   @relation(fields: [themeId], references: [themeId])
+
+  @@id([passageId, themeId])
+  @@map("passage_themes")
+}
+
+// 用户标签, 例如"学生"标签，是区分用户身份的标识
+model UserTag {
+  userTagId     Int             @id @default(autoincrement()) @map("user_tag_id")
+  name          String          @unique
+  UserToUserTag UserToUserTag[]
+
+  @@map("user_tags")
+  Passage Passage[]
+}
+
+// 用户和用户标签，多对多
+model UserToUserTag {
+  userId    Int
+  user      User    @relation(fields: [userId], references: [uid])
+  userTagId Int
+  userTag   UserTag @relation(fields: [userTagId], references: [userTagId])
+
+  @@id([userTagId, userId])
+  @@map("user_to_user_tags")
+}
+
+// 评论系统 一个用户可以发布多个评论，一个评论可以有多个回复，都是一对多
+model Comment {
+  commentId Int      @id @default(autoincrement()) @map("comment_id")
+  content   String   @db.Text
+  userId    Int
+  passageId Int
+  parentId  Int? // 是否有父级评论
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId], references: [uid])
+  passage      Passage       @relation(fields: [passageId], references: [pid])
+  parent       Comment?      @relation("CommentReplies", fields: [parentId], references: [commentId])
+  replies      Comment[]     @relation("CommentReplies")
+  commentLikes CommentLike[]
+
+  @@index([createdAt]) // 优化排序查询
+  @@map("comments")
+}
+
+// 点赞系统 多对多
+model PassageLike {
+  userId    Int
+  passageId Int
+  user      User     @relation(fields: [userId], references: [uid])
+  passage   Passage  @relation(fields: [passageId], references: [pid])
+  createdAt DateTime @default(now())
+
+  @@id([userId, passageId]) // 防止重复点赞
+  @@map("passage_likes")
+}
+
+model CommentLike {
+  userId    Int
+  commentId Int
+  user      User     @relation(fields: [userId], references: [uid])
+  comment   Comment  @relation(fields: [commentId], references: [commentId])
+  createdAt DateTime @default(now())
+
+  @@id([userId, commentId])
+  @@map("comment_likes")
+}
+
+// 收藏系统 多对多
+model Favorite {
+  userId    Int
+  passageId Int
+  user      User     @relation(fields: [userId], references: [uid])
+  passage   Passage  @relation(fields: [passageId], references: [pid])
+  createdAt DateTime @default(now())
+
+  @@id([userId, passageId]) // 防止重复收藏
+  @@map("favorites")
+}
+
+// 关注系统 多对多
+model UserFollow {
+  followerId  Int
+  followingId Int
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [uid])
+  following   User     @relation("UserFollows", fields: [followingId], references: [uid])
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId]) // 组合主键防止重复关注
+  @@map("user_follows")
 }
