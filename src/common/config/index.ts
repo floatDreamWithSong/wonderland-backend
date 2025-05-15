@@ -32,12 +32,6 @@ export class Configurations implements OnModuleInit {
   static TEST_ENV_VAR: string;
   static CRYPTO_SECRET: string;
 
-  // 添加 Redis 配置
-  static REDIS_HOST: string;
-  static REDIS_PORT: number;
-  static REDIS_PASSWORD: string;
-  static REDIS_DB: number;
-
   constructor(private readonly configService: ConfigService) {}
 
   onModuleInit() {
@@ -58,11 +52,6 @@ export class Configurations implements OnModuleInit {
     Configurations.COS_ENDPOINT = this.configService.getOrThrow<string>('COS_ENDPOINT');
     Configurations.CRYPTO_SECRET = this.configService.getOrThrow<string>('CRYPTO_SECRET');
 
-    // 添加 Redis 配置的初始化
-    Configurations.REDIS_HOST = this.configService.getOrThrow<string>('REDIS_HOST');
-    Configurations.REDIS_PORT = this.configService.getOrThrow<number>('REDIS_PORT');
-    Configurations.REDIS_PASSWORD = this.configService.getOrThrow<string>('REDIS_PASSWORD');
-    Configurations.REDIS_DB = this.configService.getOrThrow<number>('REDIS_DB');
     Configurations.TEST_ENV_VAR = this.configService.getOrThrow<string>('TEST_ENV_VAR');
     console.log('Configurations.TEST_ENV_VAR', Configurations.TEST_ENV_VAR);
     console.log('Configurations.BUCKET', Configurations.COS_BUCKET);
