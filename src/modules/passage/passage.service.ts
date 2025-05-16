@@ -41,6 +41,15 @@ export class PassageService {
             })),
           },
         },
+        include: {
+          author: {
+            select: {
+              uid: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
       });
       return passage;
     });
