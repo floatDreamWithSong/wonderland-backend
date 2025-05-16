@@ -62,7 +62,7 @@ model Passage {
   images       PassageImage[]
 
   // 标签范围， 文章和用户标签多对多
-  pushTags      PassageToTag[]
+  pushUserTags      PassageToUserTag[]
   // 标签范围推送情况
   pushType       Int            @default(0) // 0: 不开启定向推送（即公开） 1: 标签内允许 2: 标签内禁止
   // 推送流量上限
@@ -80,6 +80,8 @@ model Passage {
   PassageToTheme PassageToTheme[]
   // 热度
   hotScore       Int            @default(0) // 热度评分
+  // 一个文章可以有多个订单，一个订单属于一个文章
+  Order Order[]
 
   // 日后可扩展的业务属性（视频、内容审核）
   // videoUrl      String?        @map("video_url")
@@ -104,21 +106,7 @@ model PassageImage {
   @@map("passage_images")
 }
 
-
-// 主题，例如"求代取"主题，是区分文章系统中不同业务场景的标识
-model Theme {
-  themeId        Int              @id @default(autoincrement()) @map("tid")
-  name           String           @unique
-  PassageToTheme PassageToTheme[]
-  // 一个主题有0个或多个订单
-  Order          Order[]
-  // 一个主题可以关联多个文章
-  passages       Passage[]        @relation("ThemeToPassage")
-
-  @@map("themes")
-}
-
-// 订单，依附于特定的主题，例如"求代取"主题，就包含了一个代取订单
+// 订单，依附于文章
 model Order {
   // 订单号
   oid         Int       @id @default(autoincrement())
@@ -133,12 +121,24 @@ model Order {
   reward      Int
   // 订单状态
   status      Int       @default(0) // 0: 待接单, 1: 已接单, 2: 已完成未支付, 3: 已完成已支付
-  // 订单所属的一个主题
-  themeId     Int
-  theme       Theme     @relation(fields: [themeId], references: [themeId])
+  // 一个订单只能属于一个文章
+  passageId   Int
+  passage     Passage   @relation(fields: [passageId], references: [pid])
 
   @@map("orders")
 }
+
+// 主题，例如"求代取"主题，是区分文章系统中不同业务场景的标识
+model Theme {
+  themeId        Int              @id @default(autoincrement()) @map("tid")
+  name           String           @unique
+  PassageToTheme PassageToTheme[]
+  // 一个主题可以关联多个文章
+  passages       Passage[]        @relation("ThemeToPassage")
+
+  @@map("themes")
+}
+
 // 文章和主题，多对多
 model PassageToTheme {
   passageId Int
@@ -155,7 +155,7 @@ model UserTag {
   userTagId     Int             @id @default(autoincrement()) @map("user_tag_id")
   name          String          @unique
   UserToUserTag UserToUserTag[]
-  PassageToTag  PassageToTag[]  // 新增：文章推送目标标签关系
+  PassageToUserTag  PassageToUserTag[]  // 新增：文章推送目标标签关系
 
   @@map("user_tags")
 }
@@ -172,14 +172,14 @@ model UserToUserTag {
 }
 
 // 文章和推送目标标签，多对多
-model PassageToTag {
+model PassageToUserTag {
   passageId Int
   passage   Passage @relation(fields: [passageId], references: [pid])
   userTagId Int
   userTag   UserTag @relation(fields: [userTagId], references: [userTagId])
 
   @@id([passageId, userTagId])
-  @@map("passage_to_tags")
+  @@map("passage_to_user_tags")
 }
 
 // 评论系统 一个用户可以发布多个评论，一个评论可以有多个回复，都是一对多
