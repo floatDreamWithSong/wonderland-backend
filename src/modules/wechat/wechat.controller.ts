@@ -11,14 +11,14 @@ import { UserType } from 'src/common/decorators/user-type.decorator';
 export class WechatController {
   private readonly logger = new Logger(WechatController.name);
   constructor(private readonly wechatService: WechatService) {}
-
+  // 微信临时登录
   @Public()
   @Get('/auth/login')
   async create(@Query('code') code: string) {
     this.logger.log(`Received code: ${code}`); // 添加这行查看实际收到的 code
     return await this.wechatService.loginByCode(code);
   }
-
+  // 微信解密前端加密的手机号并绑定
   @HttpCode(HttpStatus.OK)
   @Post('/register/phone')
   @UserType('onlyUnAuthedUser')

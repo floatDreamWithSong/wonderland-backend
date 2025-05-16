@@ -38,7 +38,7 @@ export class UserService {
       },
     });
     if (_user?.avatar) {
-      await this.cosService.deleteFile(_user.avatar.split('myqcloud.com/')[1]);
+      await this.cosService.deleteFileByUrl(_user.avatar);
     }
     return res;
   }
@@ -81,7 +81,7 @@ export class UserService {
     // 绑定成功，删除验证码
     await this.redisService.del(email);
     // 更新用户邮箱
-    await this.prismaService.user.update({
+    const user = await this.prismaService.user.update({
       where: {
         openId: openId,
         userType: 0,
@@ -96,6 +96,7 @@ export class UserService {
       openid: openId,
       userType: 1,
       iat: Math.floor(Date.now() / 1000),
+      uid: user.uid,
     });
     this.logger.log(`用户${openId}绑定邮箱成功, jwtToken: ${jwtToken}`);
     return jwtToken;

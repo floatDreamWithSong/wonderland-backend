@@ -19,28 +19,14 @@ export class CosService implements OnModuleInit {
     };
     this.logger.log(this.baseParam);
   }
+  /**
+   * 上传单个文件
+   * @param file
+   * @returns 文件在COS中的路径
+   */
   async uploadFile(file: Express.Multer.File) {
     const { originalname, buffer } = file;
     const randomName = `${Date.now()}-${Math.floor(Math.random() * 10000)}-${originalname}`;
-    // 根据mimetype分发到不同的文件夹
-    // let folder = '';
-    // switch (file.mimetype) {
-    //     case 'image/jpeg':
-    //     case 'image/png':
-    //     case 'image/gif':
-    //     case 'image/webp':
-    //         folder = 'images';
-    //         break;
-    //     case 'video/mp4':
-    //     case 'video/quicktime':
-    //         folder = 'videos';
-    //         break;
-    //     default:
-    //         folder = 'others';
-    //         break;
-    // }
-    // 上传文件到COS
-    // const Key = path.join(folder, randomName);
     const Key = randomName;
     const params = {
       ...this.baseParam,
@@ -51,12 +37,32 @@ export class CosService implements OnModuleInit {
     const res = await this.cos.putObject(params);
     return res.Location;
   }
-  async deleteFile(Key: string) {
+  /**
+   * 上传多个文件
+   * @param files
+   * @returns 文件在COS中的路径
+   */
+  async uploadFiles(files: Express.Multer.File[]) {
+    const paths = await Promise.all(files.map((file) => this.uploadFile(file)));
+    return paths;
+  }
+  async uploadToGetUrls(files: Express.Multer.File[]) {
+    return this.uploadFiles(files).then((paths) => paths.map((path) => `https://${path}`));
+  }
+  private async deleteFile(Key: string) {
     const params = {
       ...this.baseParam,
       Key,
     };
     const res = await this.cos.deleteObject(params);
     return res;
+  }
+  /**
+   * 根据文件URL，得到文件在COS中的路径，并删除文件
+   * @param fileUrl 文件URL
+   */
+  async deleteFileByUrl(fileUrl: string) {
+    const urlObj = new URL(fileUrl);
+    await this.deleteFile(urlObj.pathname.substring(1));
   }
 }

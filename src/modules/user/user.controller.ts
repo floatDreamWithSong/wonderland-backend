@@ -9,6 +9,7 @@ import { UserType } from 'src/common/decorators/user-type.decorator';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // 修改头像
   @HttpCode(HttpStatus.OK)
   @Put('avatar')
   @UseInterceptors(FileInterceptor('image'))
@@ -21,6 +22,7 @@ export class UserController {
     return this.userService.changeAvatar(image, user);
   }
 
+  // 发送邮箱验证码，只向未认证用户发送，并且邮箱是私域数据表中的合法邮箱
   @HttpCode(HttpStatus.OK)
   @Post('sendVerifyCode')
   @UserType('onlyUnAuthedUser')
@@ -29,6 +31,7 @@ export class UserController {
     return null;
   }
 
+  // 验证邮箱验证码，成为私域认证用户
   @HttpCode(HttpStatus.OK)
   @Post('verifyCode')
   @UserType('onlyUnAuthedUser')

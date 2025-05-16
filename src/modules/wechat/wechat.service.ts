@@ -56,6 +56,7 @@ export class WechatService {
         openid: user.openId,
         userType: user.userType,
         iat: Math.floor(Date.now() / 1000),
+        uid: user.uid,
       });
       this.logger.log(`已存在的用户进行登录, jwtToken: ${jwtToken}`);
       return {
@@ -80,6 +81,7 @@ export class WechatService {
       openid: response.data.openid,
       userType: 0,
       iat: Math.floor(Date.now() / 1000),
+      uid: -1, // 新用户的uid没有用，仅作为标识
     });
     this.logger.log(`新用户正在等待绑定, jwtToken: ${jwtToken}`);
     return {
@@ -107,7 +109,6 @@ export class WechatService {
           openId: openid,
           phone: phoneData.phoneNumber,
           username: `用户${Math.random().toString(36).slice(2, 8)}`, // 生成随机用户名
-          avatar: '', // 默认空头像
           gender: 0, // 默认未知性别
           userType: 0, // 默认游客
         },
