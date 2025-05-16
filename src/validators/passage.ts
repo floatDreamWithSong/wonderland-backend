@@ -7,6 +7,6 @@ export const passageCreateSchema = z.object({
   images: z.array(z.string()).optional(), //图片链接
   pushUserTags: z.array(z.number()).optional(),
   pushType: z.literal(0).or(z.literal(1)).or(z.literal(2)),
-  pushLimit: z.number().default(0),
+  pushLimit: z.number().optional(),
   order: z.array(z.number().min(0, { message: '交易报酬不能为负数' })).optional(),
 });

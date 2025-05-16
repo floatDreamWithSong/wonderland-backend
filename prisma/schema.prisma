@@ -66,7 +66,7 @@ model Passage {
   // 标签范围推送情况
   pushType       Int            @default(0) // 0: 不开启定向推送（即公开） 1: 标签内允许 2: 标签内禁止
   // 推送流量上限
-  pushLimit      Int            @default(0) // 0: 不限制, 其它正整数表示对应数字的限制
+  pushLimit      Int?            // 空值不限制, 其它整数表示剩余可推送次数
 
   // 文章主题，多对多
   themes         Theme[]          @relation("ThemeToPassage")

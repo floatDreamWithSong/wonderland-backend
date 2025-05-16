@@ -6,15 +6,18 @@ import { CosService } from 'src/common/utils/cos/cos.service';
 export class FileController {
   private readonly logger = new Logger(FileController.name);
   constructor(private readonly cosService: CosService) {}
-  @Post('upload')
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'images', maxCount: 10 }]))
-  async uploadFile(@UploadedFiles() files: { images?: Express.Multer.File[] }) {
-    this.logger.log(`Uploading file: ${files.images?.reduce((acc, file) => acc + file.originalname + ',', '')}`);
-    return this.cosService.uploadToGetUrls(files.images ?? []).then(console.log);
+  @Post()
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 10 }]))
+  async uploadFile(@UploadedFiles() files: { files?: Express.Multer.File[] }) {
+    this.logger.log(`Uploading file: ${files.files?.reduce((acc, file) => acc + file.originalname + ',', '')}`);
+    return this.cosService.uploadToGetUrls(files.files ?? []).then((urls) => {
+      this.logger.log(`Uploaded file: ${urls.reduce((acc, url) => acc + url + '\n', '')}`);
+      return urls;
+    });
   }
-  @Delete('delete')
-  deleteFile(@Body('url') url: string) {
-    this.logger.log(`Deleting file: ${url}`);
-    return this.cosService.deleteFileByUrl(url);
+  @Delete()
+  deleteFile(@Body('urls') urls: string[]) {
+    this.logger.log(`Deleting file: ${urls.reduce((acc, url) => acc + url + '\n', '')}`);
+    return this.cosService.deleteFilesByUrls(urls);
   }
 }

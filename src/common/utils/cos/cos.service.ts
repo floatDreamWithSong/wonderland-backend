@@ -68,4 +68,7 @@ export class CosService implements OnModuleInit {
     const urlObj = new URL(fileUrl);
     await this.deleteFile(urlObj.pathname.substring(1));
   }
+  async deleteFilesByUrls(fileUrls: string[]) {
+    return Promise.all(fileUrls.map((fileUrl) => this.deleteFileByUrl(fileUrl)));
+  }
 }
