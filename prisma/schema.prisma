@@ -137,6 +137,8 @@ model Theme {
   passages       Passage[]        @relation("ThemeToPassage")
 
   @@map("themes")
+  // 建立根据name的索引
+  @@index([name])
 }
 
 // 文章和主题，多对多
