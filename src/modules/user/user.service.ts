@@ -19,7 +19,7 @@ export class UserService {
     @InjectRedis() private readonly redisService: Redis,
   ) {}
   async changeAvatar(file: Express.Multer.File, user: JwtPayload): Promise<string> {
-    const res = await this.cosService.uploadFile(file);
+    const res = await this.cosService.uploadFileToGetUrl(file);
     // 删除旧的头像
     const _user = await this.prismaService.user.findUnique({
       where: {
@@ -38,7 +38,7 @@ export class UserService {
       },
     });
     if (_user?.avatar) {
-      await this.cosService.deleteFileByUrl(_user.avatar);
+      await this.cosService.deleteFileByUrl(_user.avatar).catch(console.error);
     }
     return res;
   }

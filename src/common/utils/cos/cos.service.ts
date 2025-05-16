@@ -37,6 +37,9 @@ export class CosService implements OnModuleInit {
     const res = await this.cos.putObject(params);
     return res.Location;
   }
+  async uploadFileToGetUrl(file: Express.Multer.File) {
+    return this.uploadFile(file).then((url) => `https://${url}`);
+  }
   /**
    * 上传多个文件
    * @param files
