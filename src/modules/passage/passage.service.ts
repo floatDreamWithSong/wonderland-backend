@@ -34,10 +34,14 @@ export class PassageService {
               userTagId: tag,
             })),
           },
-          themes: {
-            connectOrCreate: themes?.map((theme) => ({
-              where: { name: theme },
-              create: { name: theme },
+          PassageToTheme: {
+            create: themes?.map((theme) => ({
+              theme: {
+                connectOrCreate: {
+                  where: { name: theme },
+                  create: { name: theme },
+                },
+              },
             })),
           },
         },
@@ -49,9 +53,54 @@ export class PassageService {
               avatar: true,
             },
           },
+          images: true,
+          Order: true,
+          pushUserTags: true,
+          PassageToTheme: true,
         },
       });
       return passage;
+    });
+  }
+  async deletePassage(pid: number) {
+    // const res = await this.prisma.passage.delete({
+    //   where: { pid },
+    //   include: {
+    //     images: true,
+    //     Order: true,
+    //     pushUserTags: true,
+    //     themes: true,
+    //   },
+    // });
+    // if (res.images.length > 0) {
+    //   await this.prisma.passageImage.deleteMany({
+    //     where: {
+    //       passageId: pid,
+    //     },
+    //   });
+    // }
+    // if (res.Order.length > 0) {
+    //   await this.prisma.order.deleteMany({
+    //     where: {
+    //       passageId: pid,
+    //     },
+    //   });
+    // }
+    // // 移除关系
+    // await this.prisma.passageToTheme.deleteMany({
+    //   where: {
+    //     passageId: pid,
+    //   },
+    // });
+    // await this.prisma.passageToUserTag.deleteMany({
+    //   where: {
+    //     passageId: pid,
+    //   },
+    // });
+    return this.prisma.$transaction(async (tx) => {
+      await tx.passage.delete({
+        where: { pid },
+      });
     });
   }
 }

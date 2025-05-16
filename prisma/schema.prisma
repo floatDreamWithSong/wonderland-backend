@@ -68,8 +68,6 @@ model Passage {
   // 推送流量上限
   pushLimit      Int?            // 空值不限制, 其它整数表示剩余可推送次数
 
-  // 文章主题，多对多
-  themes         Theme[]          @relation("ThemeToPassage")
   // 评论
   comments       Comment[]
   // 点赞
@@ -132,9 +130,8 @@ model Order {
 model Theme {
   themeId        Int              @id @default(autoincrement()) @map("tid")
   name           String           @unique
-  PassageToTheme PassageToTheme[]
   // 一个主题可以关联多个文章
-  passages       Passage[]        @relation("ThemeToPassage")
+  passages       PassageToTheme[]
 
   @@map("themes")
   // 建立根据name的索引
